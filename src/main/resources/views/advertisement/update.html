@@ -19,6 +19,15 @@
             <input type="text" class="form-control" id="description" aria-describedby="emailHelp" th:field="*{description}">
         </div>
         <div class="mb-3">
+            <label for="category" class="form-label">Choose category</label>
+            <select class="form-select" id="category" th:name="category" required>
+                <option value="" disabled selected hidden>Select category</option>
+                <option value="sport">Sport</option>
+                <option value="cars">Cars</option>
+                <option value="devices">Devices</option>
+            </select>
+        </div>
+        <div class="mb-3">
             <label for="price" class="form-label">Enter price</label>
             <input type="number" class="form-control" id="price" aria-describedby="emailHelp" th:field="*{price}">
         </div>
@@ -30,10 +39,9 @@
                 <option value="RUB">RUB</option>
             </select>
         </div>
-        <div class="mb-3">
-            <label for="stars" class="form-label">Star</label>
-            <input type="number" class="form-control" id="stars" aria-describedby="emailHelp" th:field="*{stars}">
-        </div>
+        <!--<div class="input-group">
+            <input type="file" class="form-control" id="image" th:name="image" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
+        </div>-->
         <button type="submit" class="btn btn-primary">Save</button>
         <a href="/advertisement/ads" class="btn btn-secondary">Back</a>
     </form>

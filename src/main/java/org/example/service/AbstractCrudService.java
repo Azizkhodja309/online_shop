@@ -15,6 +15,8 @@ public interface AbstractCrudService<D,CD,UD,K,S> {
 
     void delete(K id);
 
-    List<D> getById(K id);
+    List<D> getByUserId(K id);
+
+    void changeActivity(K id, K userId);
 
 }

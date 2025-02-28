@@ -11,13 +11,19 @@ public interface AdDao {
     void update(Advertisement advertisement, String userId);
     void delete(String id);
 
+    default List<Advertisement> findAllByCategory(String category) {
+        return null;
+    }
+
     default List<Advertisement> findAll() {
         return null;
     }
 
-    default List<Advertisement> findById(String id) {
+    default List<Advertisement> findByUser(String id) {
         return null;
     }
 
     AdDto get(String id);
+
+    void changeActivity(String id, String userId);
 }

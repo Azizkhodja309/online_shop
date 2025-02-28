@@ -29,18 +29,10 @@ public class CustomUserDetailService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         AuthUser authUser = authUserDao.findByUsername(username);
-        /*String role = authUserDao.findRoleById(authUser.getRoleId());
+        String role = authUserDao.findRoleById(authUser.getRoleId());
         List<String> permissions = authUserDao.findAllPermissionsByRoleId(authUser.getRoleId());
 
         return new CustomUserDetails(authUser, prepareRoles(role, permissions));
-*/
-        String role = authUserDao.findRoleById(authUser.getRoleId());
-//        List<String> permissions = authUserDao.findAllPermissionsByRoleId(authUser.getRoleId());
-        return new User(
-                authUser.getUsername(),
-                authUser.getPassword(),
-                List.of()
-        );
     }
 
     private Collection<? extends GrantedAuthority> prepareRoles(String role, List<String> permissions) {

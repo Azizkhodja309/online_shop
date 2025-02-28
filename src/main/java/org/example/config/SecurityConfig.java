@@ -34,7 +34,14 @@ public class SecurityConfig {
                 .userDetailsService(userDetailsService)
                 .authorizeHttpRequests(auth -> {
                     auth
-                            .requestMatchers("/","/auth/login", "/auth/create", "/advertisement/ads", "/auth/users", "/auth/create-page")
+                            .requestMatchers("/",
+                                    "/auth/login",
+                                    "/auth/create",
+                                    "/advertisement/ads",
+                                    "404-error.html",
+                                    "/advertisement/info-page",
+                                    "/auth/create-page",
+                                    "/cardImage/**")
                             .permitAll()
                             .anyRequest()
                             .authenticated();
@@ -42,10 +49,16 @@ public class SecurityConfig {
 
         httpSecurity
                 .formLogin(l -> {
-                    l.defaultSuccessUrl("/auth/set_authentication")
+                    l.defaultSuccessUrl("/auth/set_authentication", true)
                             .loginPage("/auth/login")
                             .usernameParameter("username")
                             .passwordParameter("password");
+                });
+        httpSecurity
+                .rememberMe(rc -> {
+                    rc.rememberMeCookieName("rem-me")
+//                           .rememberMeParameter("rem-me")
+                            .alwaysRemember(true);
                 });
 
         httpSecurity.logout(

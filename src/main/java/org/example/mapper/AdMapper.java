@@ -8,37 +8,41 @@ import org.example.model.entity.Advertisement;
 import org.example.model.enums.Currency;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
 public class AdMapper {
-    private SessionUser sessionUser;
 
-    public Advertisement fromCreateDto(AdCreateDto dto) {
+    public Advertisement fromCreateDto(String imageUrl, AdCreateDto dto, String userId) {
         Advertisement ad = new Advertisement();
 
         ad.setId(UUID.randomUUID().toString().replace("-", ""));
         ad.setName(dto.getName());
         ad.setDescription(dto.getDescription());
         ad.setPrice(dto.getPrice());
-        ad.setStars(dto.getStars());
+        ad.setCategory(dto.getCategory());
+        ad.setStars(0.);
         ad.setCurrency(dto.getCurrency());
-        ad.setCreatedBy(sessionUser.get().getAuthUser().getId());
+        ad.setCreatedBy(userId);
+        ad.setCreatedAt(LocalDateTime.now());
+        ad.setImageURL(imageUrl);
         return ad;
     }
 
-    public Advertisement fromUpdateDto(AdUpdateDto dto) {
+    public Advertisement fromUpdateDto(AdUpdateDto dto, String userId) {
         Advertisement ad = new Advertisement();
 
         ad.setId(dto.getId());
         ad.setName(dto.getName());
         ad.setDescription(dto.getDescription());
         ad.setPrice(dto.getPrice());
-        ad.setStars(dto.getStars());
         ad.setCurrency(dto.getCurrency());
-        ad.setCreatedBy(sessionUser.get().getAuthUser().getId());
+        ad.setCategory(dto.getCategory());
+        ad.setUpdatedAt(LocalDateTime.now());
+        ad.setUpdatedBy(userId);
         return ad;
     }
 
@@ -57,6 +61,7 @@ public class AdMapper {
                 .currency(ad.getCurrency())
                 .stars(ad.getStars())
                 .addOrder(ad.getAddOrder())
+                .isActive(ad.getIsActive())
                 .build();
     }
 }

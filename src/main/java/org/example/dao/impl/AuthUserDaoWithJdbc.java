@@ -29,19 +29,7 @@ public class AuthUserDaoWithJdbc implements AuthUserDao {
 
     @Override
     public void save(AuthUser authUser) {
-//        String sql = "insert into users(id, full_name, username, password, birthdate, phone, email) values (:id, :name, :username, :password, :birth, :phone, :email)";
-//
-//        namedParameterJdbcTemplate.update(sql, Map.of(
-//                "id", authUser.getId(),
-//                "name", authUser.getFullName(),
-//                "username", authUser.getUsername(),
-//                "password", authUser.getPassword(),
-//                "birth", authUser.getBirthDate(),
-//                "phone", authUser.getPhone(),
-//                "email", authUser.getEmail())
-//        );
-
-        String sql = "insert into users(id, full_name, username, password, birthdate, phone, email) values (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "insert into users(id, full_name, username, password, birthdate, phone, email, role_id) values (?, ?, ?, ?, ?, ?, ?, ?)";
         jdbcTemplate.update(
                 sql,
                 authUser.getId(),
@@ -50,7 +38,7 @@ public class AuthUserDaoWithJdbc implements AuthUserDao {
                 passwordEncoder.encode(authUser.getPassword()),
                 authUser.getBirthDate(),
                 authUser.getPhone(),
-                authUser.getEmail());
+                authUser.getEmail(), 2);
     }
 
     @Override
@@ -128,7 +116,7 @@ public class AuthUserDaoWithJdbc implements AuthUserDao {
 
     @Override
     public List<String> findAllPermissionsByRoleId(Integer roleId) {
-        String sql = "select p.code from permissions p left join role_permissions rp on p.id = rp.permission_id left join auth_role ar on rp.role_id = ar.id where ar.id = ?";
+        String sql = "select p.code from permission p left join role_permission rp on p.id = rp.permission_id left join auth_role ar on rp.role_id = ar.id where ar.id = ?";
         return jdbcTemplate.queryForList(sql, String.class, roleId);
     }
 }

@@ -27,22 +27,25 @@ public class AdDaoWithJdbc implements AdDao {
 
     @Override
     public void save(Advertisement advertisement, String userId) {
-        String sql = "insert into advertisement(id, name, description, price, currency, stars, created_by) values (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "insert into advertisement(id, name, description, price, currency, stars, created_by, created_at, image_url, category) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         jdbcTemplate.update(
                 sql,
                 advertisement.getId(),
                 advertisement.getName(),
                 advertisement.getDescription(),
                 advertisement.getPrice(),
-                advertisement.getCurrency().name().toString(),
+                advertisement.getCurrency().name(),
                 advertisement.getStars(),
-                userId
+                advertisement.getCreatedBy(),
+                advertisement.getCreatedAt(),
+                advertisement.getImageURL(),
+                advertisement.getCategory()
         );
     }
 
     @Override
     public void update(Advertisement advertisement, String userId) {
-        String sql = "update advertisement set name = ?, description = ?, price = ?, currency = ?, stars = ?, updated_at = ?, updated_by = ? where id = ?";
+        String sql = "update advertisement set name = ?, description = ?, price = ?, currency = ?, stars = ?, updated_at = ?, updated_by = ?, category = ? where id = ?";
         jdbcTemplate.update(
                 sql,
                 advertisement.getName(),
@@ -50,8 +53,9 @@ public class AdDaoWithJdbc implements AdDao {
                 advertisement.getPrice(),
                 advertisement.getCurrency().name(),
                 advertisement.getStars(),
-                LocalDateTime.now(),
-                userId,
+                advertisement.getUpdatedAt(),
+                advertisement.getUpdatedBy(),
+                advertisement.getCategory(),
                 advertisement.getId()
         );
     }
@@ -73,9 +77,12 @@ public class AdDaoWithJdbc implements AdDao {
                 ad.setName(rs.getString("name"));
                 ad.setDescription(rs.getString("description"));
                 ad.setPrice(rs.getDouble("price"));
+                ad.setImageURL(rs.getString("image_url"));
                 ad.setCurrency(Currency.valueOf(rs.getObject("currency").toString()));
-                ad.setStars(rs.getInt("stars"));
+                ad.setStars(rs.getDouble("stars"));
+                ad.setIsActive(rs.getBoolean("isactive"));
                 ad.setAddOrder(rs.getLong("add_order"));
+                ad.setCategory(rs.getString("category"));
                 return ad;
             }, id);
         } catch (EmptyResultDataAccessException e) {
@@ -84,8 +91,14 @@ public class AdDaoWithJdbc implements AdDao {
     }
 
     @Override
-    public List<Advertisement> findAll() {
-        String sql = "select * from advertisement where deleted = false";
+    public void changeActivity(String id, String userId) {
+        String sql = "update advertisement set isactive = ? where id = ? and deleted = false and created_by = ?";
+        jdbcTemplate.update(sql, !get(id).getIsActive(), id, userId);
+    }
+
+    @Override
+    public List<Advertisement> findAllByCategory(String category) {
+        String sql = "select * from advertisement a where a.deleted = false and a.isactive = true and a.category = ?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             Advertisement ad = new Advertisement();
             ad.setId(rs.getString("id"));
@@ -93,16 +106,36 @@ public class AdDaoWithJdbc implements AdDao {
             ad.setDescription(rs.getString("description"));
             ad.setPrice(rs.getDouble("price"));
             ad.setCurrency(Currency.valueOf(rs.getObject("currency").toString()));
-            ad.setStars(rs.getInt("stars"));
-            ad.setIsActive(rs.getBoolean("isactive"));
+            ad.setStars(rs.getDouble("stars"));
+            ad.setImageURL(rs.getString("image_url"));
             ad.setAddOrder(rs.getLong("add_order"));
+            ad.setIsActive(rs.getBoolean("isactive"));
+            return ad;
+        }, category);
+    }
+
+    @Override
+    public List<Advertisement> findAll() {
+        String sql = "select * from advertisement where deleted = false and isactive = true";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Advertisement ad = new Advertisement();
+            ad.setId(rs.getString("id"));
+            ad.setName(rs.getString("name"));
+            ad.setDescription(rs.getString("description"));
+            ad.setPrice(rs.getDouble("price"));
+            ad.setCurrency(Currency.valueOf(rs.getObject("currency").toString()));
+            ad.setStars(rs.getDouble("stars"));
+            ad.setImageURL(rs.getString("image_url"));
+            ad.setAddOrder(rs.getLong("add_order"));
+            ad.setIsActive(rs.getBoolean("isactive"));
+            ad.setCategory(rs.getString("category"));
             return ad;
         });
     }
 
     @Override
-    public List<Advertisement> findById(String id) {
-        String sql = "select * from advertisement where created_by = id and deleted = false";
+    public List<Advertisement> findByUser(String id) {
+        String sql = "select * from advertisement where created_by = ? and deleted = false";
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             Advertisement ad = new Advertisement();
             ad.setId(rs.getString("id"));
@@ -110,10 +143,12 @@ public class AdDaoWithJdbc implements AdDao {
             ad.setDescription(rs.getString("description"));
             ad.setPrice(rs.getDouble("price"));
             ad.setCurrency(Currency.valueOf(rs.getObject("currency").toString()));
-            ad.setStars(rs.getInt("stars"));
+            ad.setStars(rs.getDouble("stars"));
             ad.setIsActive(rs.getBoolean("isactive"));
             ad.setAddOrder(rs.getLong("add_order"));
+            ad.setCreatedBy(rs.getString("created_by"));
+            ad.setCategory(rs.getString("category"));
             return ad;
-        });
+        }, id);
     }
 }

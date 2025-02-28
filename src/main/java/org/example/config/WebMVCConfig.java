@@ -28,11 +28,9 @@ import java.util.Locale;
 @PropertySource(value = "classpath:application.properties")
 public class WebMVCConfig implements WebMvcConfigurer {
 
-    private final Environment environment;
     private final ApplicationContext context;
     @Autowired
-    public WebMVCConfig(Environment environment, ApplicationContext context) {
-        this.environment = environment;
+    public WebMVCConfig(ApplicationContext context) {
         this.context = context;
     }
 

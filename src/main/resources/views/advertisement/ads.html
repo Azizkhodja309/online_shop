@@ -7,69 +7,126 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         body {
-            background-color: #f8f9fa;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            min-height: 100vh;
+            padding-top: 70px;
         }
-
         .container {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 1200px;
         }
-
-        .nav-buttons a {
-            margin-right: 10px;
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #343a40;
+            padding: 15px;
+            z-index: 1000;
         }
-
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            transition: 0.3s;
+        }
+        .navbar a:hover {
+            color: #f8d210;
+        }
         .card {
             border: none;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
-
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
         }
-
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        .card-body {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .description {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-height: 3em;
+        }
         .btn-custom {
             width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 5px;
+            padding: 8px 10px;
         }
     </style>
 </head>
 <body>
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="nav-buttons">
-            <a th:href="@{/auth/create-page}" class="btn btn-outline-primary">Register</a>
-            <a th:href="@{/auth/users}" class="btn btn-outline-secondary">Users</a>
-            <a th:href="@{/advertisement/my_ads}" class="btn btn-outline-secondary">My Ads</a>
+<div class="navbar">
+    <span class="text-white" th:text="'Welcome ' + ${userFullName}"></span>
 
-            <!--<div th:if="${isLoggedIn}">
-                <a th:href="@{/auth/login}" class="btn btn-outline-info">Login</a>
-            </div>
-            <div th:unless="${isLoggedIn}">
-                <a th:href="@{/auth/logout}" class="btn btn-outline-danger">Logout</a>
-            </div>-->
-                <a sec:authorize="isAnonymous()" th:href="@{/auth/login}" class="btn btn-outline-info">Login</a>
-                <a sec:authorize="isAuthenticated()" th:href="@{/auth/logout}" class="btn btn-outline-danger">Logout</a>
-        </div>
-        <a th:href="@{/advertisement/create-page}" class="btn btn-success">
-            <i class="fas fa-plus"></i> Add Advertisement
-        </a>
+    <form class="d-flex" role="search">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+    </form>
+
+    <div class="d-flex align-items-center">
+        <!-- Category Filter placed first -->
+        <form th:action="@{/advertisement/ads}" method="get" class="d-flex me-2">
+            <select class="form-select me-2" th:name="category">
+                <option value="all" th:selected="${selectedCategory == 'all'}">All products</option>
+                <option value="sport" th:selected="${selectedCategory == 'sport'}">Sport</option>
+                <option value="cars" th:selected="${selectedCategory == 'cars'}">Cars</option>
+                <option value="devices" th:selected="${selectedCategory == 'devices'}">Devices</option>
+            </select>
+            <button class="btn btn-outline-success" type="submit">Filter</button>
+        </form>
+
+        <a th:href="@{/auth/create-page}" class="btn btn-sm btn-outline-light me-2" th:unless="${isLoggedIn}">Register</a>
+
+        <a th:href="@{/auth/users}" class="btn btn-sm btn-outline-light me-2" th:if="${isAdmin}">Users</a>
+
+        <a th:href="@{/advertisement/my_ads}" class="btn btn-sm btn-outline-light me-2" th:if="${isLoggedIn}">My Ads</a>
+
+        <a href="#" class="btn btn-sm btn-outline-danger me-2" th:if="${isLoggedIn}" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a>
+
+        <a th:href="@{/auth/login}" class="btn btn-sm btn-outline-info" th:unless="${isLoggedIn}">Login</a>
     </div>
+</div>
 
-    <div class="row">
-        <th:block th:each="ad : ${ads}">
+<div class="container">
+    <div class="row mt-4">
+        <div th:if="${ads.isEmpty()}">
+            <img src="https://static.vecteezy.com/system/resources/previews/020/487/380/non_2x/empty-folder-no-result-document-file-data-not-found-concept-illustration-flat-design-eps10-modern-graphic-element-for-landing-page-empty-state-ui-infographic-icon-vector.jpg" alt="No image">
+        </div>
+        <th:block th:each="ad, stat : ${ads}">
             <div class="col-md-4 mb-4">
                 <div class="card shadow-sm">
-<!--                    <img th:src="@{/images/noPhoto.jpg}" class="card-img-top" alt="Advertisement Image">-->
+                    <img th:if="${ad.imageURL != null}" th:src="${ad.imageURL}" alt="No image">
+                    <img th:unless="${ad.imageURL != null}" class="MMImage-Origin" src="https://www.ot-mebel.ru/images/no_photo_900_900.png" alt="Picture background">
                     <div class="card-body text-center">
                         <h5 class="card-title" th:text="${ad.name}"></h5>
-                        <p class="card-text text-muted" th:text="${ad.description}"></p>
+                        <p class="card-text text-muted description" th:text="${ad.description}"></p>
                         <p class="fw-bold">$<span th:text="${ad.price}"></span> <small th:text="${ad.currency}"></small></p>
                         <a th:href="@{/advertisement/info-page(id=${ad.id})}" class="btn btn-primary btn-custom">
                             <i class="fas fa-info-circle"></i> View Details
@@ -80,5 +137,27 @@
         </th:block>
     </div>
 </div>
+
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logoutModalLabel">Tasdiqlash</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Rostan ham tizimdan chiqmoqchimisiz?
+            </div>
+            <div class="modal-footer">
+                <form th:action="@{/auth/logout}" th:method="POST">
+                    <button type="submit" class="btn btn-danger">Ha</button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Yo'q</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

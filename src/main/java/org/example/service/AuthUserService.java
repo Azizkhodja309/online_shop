@@ -49,7 +49,11 @@ public class AuthUserService implements AbstractCrudService<AuthUserDto, AuthUse
     }
 
     @Override
-    public List<AuthUserDto> getById(String id) {
+    public List<AuthUserDto> getByUserId(String id) {
         return List.of();
+    }
+
+    @Override
+    public void changeActivity(String id, String userId) {
     }
 }

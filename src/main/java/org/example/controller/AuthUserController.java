@@ -1,6 +1,6 @@
 package org.example.controller;
 
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.annotation.MultipartConfig;
 import org.example.config.SessionUser;
 import org.example.mapper.AuthUserMapper;
 import org.example.model.DTO.userDTO.AuthUserCreateDto;
@@ -13,11 +13,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
 
 @Controller
+@MultipartConfig
 public class AuthUserController {
     private final AuthUserService service;
     private final AuthUserMapper mapper;
@@ -87,16 +89,15 @@ public class AuthUserController {
     }
 
     @PostMapping("/auth/create")
-    public String create(@ModelAttribute AuthUserCreateDto dto, HttpSession session) {
+    public String create(@ModelAttribute AuthUserCreateDto dto) {
         AuthUser authUser = mapper.fromCreateDto(dto);
-        session.setAttribute("userId", authUser.getId());
         service.create(authUser, null);
-        return "redirect:users";
+        return "redirect:advertisement/ads";
     }
 
     @PostMapping("/auth/update")
-    public String update(@ModelAttribute AuthUserUpdateDto dto, HttpSession session) {
-        service.update(dto, /*session.getAttribute("userId").toString()*/"123");
+    public String update(@ModelAttribute AuthUserUpdateDto dto) {
+        service.update(dto, sessionUser.get().getAuthUser().getId());
         return "redirect:users";
     }
 

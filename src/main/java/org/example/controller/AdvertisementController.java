@@ -1,31 +1,45 @@
 package org.example.controller;
 
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.annotation.MultipartConfig;
 import org.example.config.CustomUserDetails;
 import org.example.config.SessionUser;
+import org.example.dao.AdDao;
+import org.example.dao.AuthUserDao;
 import org.example.model.DTO.adDTO.AdCreateDto;
 import org.example.model.DTO.adDTO.AdDto;
 import org.example.model.DTO.adDTO.AdUpdateDto;
 import org.example.model.entity.Advertisement;
+import org.example.model.entity.AuthUser;
+import org.example.model.enums.Currency;
 import org.example.service.AdvertisementService;
+import org.example.service.CategoryService;
+import org.example.service.FileService;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.server.header.XFrameOptionsServerHttpHeadersWriter;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.io.File;
 import java.util.Comparator;
 import java.util.List;
 
+@MultipartConfig
 @Controller
 public class AdvertisementController {
-    private AdvertisementService service;
-    private SessionUser sessionUser;
+    private final AdvertisementService service;
+    private final FileService fileService;
+    private final SessionUser sessionUser;
+    private final AuthUserDao authUserDao;
 
-    public AdvertisementController(AdvertisementService service) {
+    public AdvertisementController(AdvertisementService service, FileService fileService, SessionUser sessionUser, AuthUserDao authUserDao) {
         this.service = service;
+        this.fileService = fileService;
+        this.sessionUser = sessionUser;
+        this.authUserDao = authUserDao;
     }
 
     @GetMapping("/advertisement/create-page")
@@ -34,33 +48,62 @@ public class AdvertisementController {
     }
 
     @PostMapping("/advertisement/create")
-    public String create(@ModelAttribute AdCreateDto ad) {
-        service.create(ad, sessionUser.get().getAuthUser().getId());
-        return "redirect:ads";
+    public String create(@ModelAttribute AdCreateDto adDto, Model model) {
+        service.create(adDto, sessionUser.get().getAuthUser().getId());
+        return "redirect:/advertisement/my_ads";
     }
 
     @GetMapping("/advertisement/my_ads")
     public ModelAndView myAds(){
-        List<AdDto> ads = service.getById(sessionUser.get().getAuthUser().getId());
-        ads.sort(Comparator.comparing(AdDto::getAddOrder));
-        ModelAndView view = new ModelAndView("advertisement/ads");
-        view.addObject("ads", ads);
-        view.addObject("isLoggedIn", sessionUser.get().isAccountNonLocked());
+        List<AdDto> myAds = service.getByUserId(sessionUser.get().getAuthUser().getId());
+
+        myAds.sort(Comparator.comparing(AdDto::getAddOrder));
+        ModelAndView view = new ModelAndView("advertisement/myAds");
+        view.addObject("myAds", myAds);
         return view;
     }
 
     @GetMapping("/advertisement/info-page")
-    public String infoPage(@RequestParam("id") String id) {
-        return "/advertisement/infoPage";
+    public ModelAndView infoPage(@RequestParam("id") String id) {
+        AdDto ad = service.get(id);
+        ModelAndView modelAndView = new ModelAndView("advertisement/infoPage");
+        modelAndView.addObject("adInfo", ad);
+        return modelAndView;
     }
 
     @GetMapping("/advertisement/ads")
-    public ModelAndView ads(){
-        List<AdDto> ads = service.getAll();
+    public ModelAndView ads(@RequestParam(value = "category", required = false, defaultValue = "all") String category){
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String fullName = "Guest";
+        boolean admin = false;
+        boolean isLoggedIn = !(principal instanceof String && principal.equals("anonymousUser"));
+
+        if(principal instanceof CustomUserDetails customUserDetails) {
+                AuthUser authUser = customUserDetails.getAuthUser();
+                fullName = authUser.getFullName();
+        }
+
+        List<AdDto> ads;
+        if(category.equals("all")) {
+            ads = service.getAll();
+        }else{
+            ads = service.getAllByCategory(category);
+        }
         ads.sort(Comparator.comparing(AdDto::getAddOrder));
         ModelAndView view = new ModelAndView("advertisement/ads");
         view.addObject("ads", ads);
-        view.addObject("isLoggedIn", true);
+        view.addObject("userFullName", fullName);
+
+//        categoryService.getAllCategory();
+
+        try{
+            if(authUserDao.findRoleById(sessionUser.get().getAuthUser().getRoleId()).equals("admin"))
+                admin = true;
+        }catch(Exception ignored){}
+
+        view.addObject("isAdmin", admin);
+        view.addObject("isLoggedIn", isLoggedIn);
         return view;
     }
 
@@ -77,14 +120,32 @@ public class AdvertisementController {
     }
 
     @PostMapping("/advertisement/update")
-    public String update(@ModelAttribute AdUpdateDto ad) {
+    public String update(@RequestParam("name") String name,
+                         @RequestParam("description") String description,
+                         @RequestParam("category") String category,
+                         @RequestParam("price") Double price,
+                         @RequestParam("currency") String currency,
+                         @RequestParam(value = "image", required = false) MultipartFile file) {
+        AdUpdateDto ad = new AdUpdateDto();
+        ad.setName(name);
+        ad.setDescription(description);
+        ad.setCategory(category);
+        ad.setPrice(price);
+        ad.setCurrency(Currency.valueOf(currency));
+        ad.setImageURL(fileService.getImageURL(file));
         service.update(ad, sessionUser.get().getAuthUser().getId());
-        return "redirect:ads";
+        return "redirect:/advertisement/my_ads";
     }
 
     @PostMapping("/advertisement/delete")
     public String delete(@RequestParam("id") String id) {
         service.delete(id);
-        return "redirect:ads";
+        return "redirect:/advertisement/my_ads";
+    }
+
+    @PostMapping("/advertisement/change-activity")
+    public String toggle(@RequestParam("id") String id) {
+        service.changeActivity(id, sessionUser.get().getAuthUser().getId());
+        return "redirect:/advertisement/my_ads";
     }
 }
