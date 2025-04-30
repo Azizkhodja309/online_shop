@@ -15,7 +15,7 @@ import java.util.List;
 
 @Component
 public class AdDaoWithJdbc implements AdDao {
-    private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate ;
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public AdDaoWithJdbc(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {

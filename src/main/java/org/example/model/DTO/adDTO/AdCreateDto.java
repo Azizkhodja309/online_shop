@@ -18,6 +18,5 @@ public class AdCreateDto {
     private Double price;
     private String category;
     private Currency currency;
-    private Double stars;
     private String imageURL;
 }

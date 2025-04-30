@@ -26,7 +26,8 @@ public class AdvertisementService implements AbstractCrudService<AdDto, AdCreate
 
     @Override
     public void create(AdCreateDto dto, String userId) {
-        String imageURL = fileService.getImageURL(dto);
+//        String imageURL = fileService.getImageURL(dto);
+        String imageURL = null;
         Advertisement ad = mapper.fromCreateDto(imageURL, dto, userId);
         dao.save(ad, userId);
     }

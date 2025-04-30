@@ -54,6 +54,14 @@
             background-color: #dc3545;
             color: white;
         }
+
+        /* Description qisqartirish */
+        .description-cell {
+            max-width: 200px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 <body>
@@ -85,7 +93,7 @@
         <tr th:each="ad, iterStat : ${myAds}">
             <td th:text="${iterStat.count}"></td>
             <td th:text="${ad.name}"></td>
-            <td th:text="${ad.description}"></td>
+            <td class="description-cell" th:attr="title=${ad.description}" th:text="${ad.description}"></td>
             <td th:text="${ad.price}"></td>
             <td th:text="${ad.currency}"></td>
             <td th:text="${ad.stars}"></td>

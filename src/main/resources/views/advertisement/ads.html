@@ -127,7 +127,7 @@
                     <div class="card-body text-center">
                         <h5 class="card-title" th:text="${ad.name}"></h5>
                         <p class="card-text text-muted description" th:text="${ad.description}"></p>
-                        <p class="fw-bold">$<span th:text="${ad.price}"></span> <small th:text="${ad.currency}"></small></p>
+                        <p class="fw-bold"><span th:text="${ad.price}"></span> <small th:text="${ad.currency}"></small></p>
                         <a th:href="@{/advertisement/info-page(id=${ad.id})}" class="btn btn-primary btn-custom">
                             <i class="fas fa-info-circle"></i> View Details
                         </a>

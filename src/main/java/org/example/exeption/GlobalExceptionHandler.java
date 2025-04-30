@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-//    @ExceptionHandler(Exception.class)
+    @ExceptionHandler(Exception.class)
     public String errorPage(Exception ex, Model model) {
         return "404-error";
     }
